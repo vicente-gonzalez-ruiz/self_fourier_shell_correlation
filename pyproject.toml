@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling", "setuptools", "setuptools-scm"]
+#build-backend = "hatchling.build"
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "self_fourier_shell_correlation"
+version = "0.0.1"
+authors = [
+  { name="Eric J. Verbeke", email="ev9102@princeton.edu" },
+  { name="Vicente González Ruiz", email="vicente.gonzalez.ruiz@gmail.com" },
+]
+description = "Self Fourier shell correlation (https://www.nature.com/articles/s42003-023-05724-y)"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[project.urls]
+"Homepage" = "https://github.com/vicente-gonzalez-ruiz/self_fourier_shell_correlation"
+"Bug Tracker" = "https://github.com/vicente-gonzalez-ruiz/self_fourier_shell_correlation/issues"
+
