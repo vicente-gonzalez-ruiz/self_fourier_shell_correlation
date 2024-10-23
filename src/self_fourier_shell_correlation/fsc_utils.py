@@ -652,7 +652,7 @@ def get_shifts(d):
         
     return a
 
-def get_FSC_curve(volume):
+def get_SFSC_curve(volume):
     y1 = volume
     s1 = y1[:, :, ::2]
     s2 = y1[:, :, 1::2]
@@ -680,3 +680,9 @@ def get_FSC_curve(volume):
     freq = get_radial_spatial_frequencies(s1, 1)
 
     return freq, c_avg
+
+def get_FSC_curve(vol1, vol2):
+    r = vol1.shape[0]//2
+    corrs = fsc.two_volume_fsc(vol1, vol2, r)
+    freqs = fsc.get_radial_spatial_frequencies(vol1, 1)
+    return freqs, corrs
