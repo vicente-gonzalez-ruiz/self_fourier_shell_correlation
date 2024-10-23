@@ -651,3 +651,32 @@ def get_shifts(d):
              ( 0.5,  0.0, 0.0)]   # (6, 7) 27
         
     return a
+
+def get_FSC_curve(volume):
+    y1 = volume
+    s1 = y1[:, :, ::2]
+    s2 = y1[:, :, 1::2]
+    S2 = fsc.phase_shift_3d(np.fft.fftshift(np.fft.fftn(s2)), 0.5, 0, 0)
+    s2_shift = np.fft.ifftn(np.fft.ifftshift(S2)).real
+
+    s3 = y1[:, ::2, :]
+    s4 = y1[:, 1::2, :]
+    S4 = fsc.phase_shift_3d(np.fft.fftshift(np.fft.fftn(s4)), 0, 0.5, 0)
+    s4_shift = np.fft.ifftn(np.fft.ifftshift(S4)).real
+
+    s5 = y1[::2, :, :]
+    s6 = y1[1::2, :, :]
+    S6 = fsc.phase_shift_3d(np.fft.fftshift(np.fft.fftn(s6)), 0, 0, 0.5)
+    s6_shift = np.fft.ifftn(np.fft.ifftshift(S6)).real
+
+    r = volume.shape[0]//2
+
+    c1 = fsc.two_volume_fsc(s1, s2_shift, r)
+    c2 = fsc.two_volume_fsc(s3, s4_shift, r)
+    c3 = fsc.two_volume_fsc(s5, s6_shift, r)
+
+    c_avg = np.mean([c1, c2, c3], axis=0)
+
+    freq = fsc.get_radial_spatial_frequencies(s1, 1)
+
+    return freq, c_avg
