@@ -193,6 +193,7 @@ def compute_fourier_shell_correlation(Y1, Y2, rmax, gamma=1/4, whiten_upsample=F
     assert Y1.shape == Y2.shape, "arrays must be same shape"
     
     shape = Y1.shape
+    print(f"compute_fourier_shell_correlation.shape={shape}")
     
     rdists = radial_distance_grid(shape) 
     
