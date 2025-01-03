@@ -7,26 +7,20 @@ import numpy as np
 import scipy.ndimage as ndi
 from scipy.special import jv
 
-
 def log_abs(array):
     return np.log(1 + np.abs(array))
-
 
 def ft2(array):
     return np.fft.fftshift(np.fft.fft2(array))
 
-
 def ift2(array):
     return np.fft.ifft2(np.fft.ifftshift(array)).real
-
 
 def ftn(array):
     return np.fft.fftshift(np.fft.fftn(array))
 
-
 def iftn(array):
     return np.fft.ifftn(np.fft.ifftshift(array)).real
-
 
 def open_mrc(mrc_file, return_voxel=False):
     with mrcfile.open(mrc_file) as mrc:
@@ -36,7 +30,6 @@ def open_mrc(mrc_file, return_voxel=False):
         if return_voxel:
             v = [v, voxel]
     return x
-
 
 def radial_distance_grid(shape):
     """Compute grid of radial distances"""
@@ -52,7 +45,6 @@ def radial_distance_grid(shape):
         
     return np.round(np.sqrt(radial_dists))
 
-
 def shell_mask(r_dists, r_o, dr=1):
     """Returns shell mask as boolean"""
     
@@ -62,7 +54,6 @@ def shell_mask(r_dists, r_o, dr=1):
     mask = np.logical_xor(outer, inner)
     
     return mask
-
 
 def sphere_mask(r_dists, radius=False):
     """Returns sphere mask as boolean"""
@@ -75,7 +66,6 @@ def sphere_mask(r_dists, radius=False):
     
     return mask
 
-
 def product(*args):
     """Cartesian product from python 3 itertools"""
     
@@ -86,7 +76,6 @@ def product(*args):
     for prod in result:
         yield tuple(prod)
     
-
 def split_array(array):
     """
     Downsample an even square array into combinations of even/odd indicies
@@ -112,7 +101,6 @@ def split_array(array):
     
     return split
 
-
 def trim_edges(array):
     """Trim length of each dimension by 1"""
     
@@ -121,7 +109,6 @@ def trim_edges(array):
     trim_array = array[trim_idx]
     
     return trim_array
-
 
 def get_split_array(array):
     """Split array and make even dimensions by truncating if necessary"""
@@ -142,7 +129,6 @@ def get_split_array(array):
             
     return split
 
-
 def phase_shift_2d(F, sx, sy):
     """Phase shift 2-D array, requires even shape"""
     
@@ -160,7 +146,6 @@ def phase_shift_2d(F, sx, sy):
     F_shift = wy * wx * F
     
     return F_shift
-
 
 def phase_shift_3d(F, sx, sy, sz):
     """Phase shift 3-D array, requires even shape"""
@@ -677,6 +662,29 @@ def get_SFSC_curve(volume):
     c3 = two_volume_fsc(s5, s6_shift, r)
 
     c_avg = np.mean([c1, c2, c3], axis=0)
+
+    freq = get_radial_spatial_frequencies(s1, 1)
+
+    return freq, c_avg
+
+def get_SFRC_curve(image):
+    y1 = image
+    s1 = y1[:, ::2]
+    s2 = y1[:, 1::2]
+    S2 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s2)), 0.5, 0)
+    s2_shift = np.fft.ifftn(np.fft.ifftshift(S2)).real
+
+    s3 = y1[::2, :]
+    s4 = y1[1::2, :]
+    S4 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s4)), 0, 0.5)
+    s4_shift = np.fft.ifftn(np.fft.ifftshift(S4)).real
+
+    r = image.shape[0]//2
+
+    c1 = two_image_frc(s1, s2_shift, r)
+    c2 = two_image_frc(s3, s4_shift, r)
+
+    c_avg = np.mean([c1, c2], axis=0)
 
     freq = get_radial_spatial_frequencies(s1, 1)
 
