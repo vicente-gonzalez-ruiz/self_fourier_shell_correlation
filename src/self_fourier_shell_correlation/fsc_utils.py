@@ -686,6 +686,8 @@ def get_SFRC_curve(image):
 
     c_avg = np.mean([c1, c2], axis=0)
 
+    c_avg = 2*c_avg / (1 + c_avg)
+
     freq = get_radial_spatial_frequencies(s1, 1)
 
     return freq, c_avg
