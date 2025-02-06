@@ -667,7 +667,7 @@ def get_SFSC_curve(volume):
 
     return freq, c_avg
 
-def split(signal):
+def random_split(signal):
     """
     Split the signal into two independent half-signals by dividing the data randomly.
     """
@@ -676,16 +676,20 @@ def split(signal):
     s2 = np.where(~mask, signal, 0)
     return s1, s2
 
+def odd_even_split(image):
+    s1 = image[:, ::2]
+    s2 = image[:, 1::2]
+
 def get_SFRC_curve(image):
-    y1 = image
-    #s1 = y1[:, ::2]
-    #s2 = y1[:, 1::2]
-    s1, s2 = split(image)
+    s1 = image[:, ::2]
+    s2 = image[:, 1::2]
+    #s1, s2 = random_split(image)
     S2 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s2)), 0.5, 0)
     s2_shift = np.fft.ifftn(np.fft.ifftshift(S2)).real
 
-    s3 = y1[::2, :]
-    s4 = y1[1::2, :]
+    s3 = image[::2, :]
+    s4 = image[1::2, :]
+    #s3, s4 = random_split(image)
     S4 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s4)), 0, 0.5)
     s4_shift = np.fft.ifftn(np.fft.ifftshift(S4)).real
 
