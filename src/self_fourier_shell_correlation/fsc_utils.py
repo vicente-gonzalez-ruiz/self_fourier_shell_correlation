@@ -667,7 +667,7 @@ def get_SFSC_curve(volume):
 
     return freq, c_avg
 
-def split(signal):
+def random_split(signal):
     """
     Split the signal into two independent half-signals by dividing the data randomly.
     """
@@ -676,16 +676,20 @@ def split(signal):
     s2 = np.where(~mask, signal, 0)
     return s1, s2
 
+def odd_even_split(image):
+    s1 = image[:, ::2]
+    s2 = image[:, 1::2]
+
 def get_SFRC_curve(image):
-    y1 = image
-    #s1 = y1[:, ::2]
-    #s2 = y1[:, 1::2]
-    s1, s2 = split(image)
+    s1 = image[:, ::2]
+    s2 = image[:, 1::2]
+    #s1, s2 = random_split(image)
     S2 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s2)), 0.5, 0)
     s2_shift = np.fft.ifftn(np.fft.ifftshift(S2)).real
 
-    s3 = y1[::2, :]
-    s4 = y1[1::2, :]
+    s3 = image[::2, :]
+    s4 = image[1::2, :]
+    #s3, s4 = random_split(image)
     S4 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s4)), 0, 0.5)
     s4_shift = np.fft.ifftn(np.fft.ifftshift(S4)).real
 
@@ -693,6 +697,60 @@ def get_SFRC_curve(image):
 
     c1 = two_image_frc(s1, s2_shift, r)
     c2 = two_image_frc(s3, s4_shift, r)
+
+    c_avg = np.mean([c1, c2], axis=0)
+
+    c_avg = 2*c_avg / (1 + c_avg)
+
+    freq = get_radial_spatial_frequencies(s1, 1)
+
+    return freq, c_avg
+
+def get_SFRC_curve(image):
+    s1, s2 = random_split(image)
+    s3, s4 = random_split(image)
+    s5, s6 = random_split(image)
+
+    r = image.shape[0]//2
+
+    c1 = two_image_frc(s1, s2, r)
+    c2 = two_image_frc(s3, s4, r)
+    c3 = two_image_frc(s5, s6, r)
+
+    c_avg = np.mean([c1, c2, c3], axis=0)
+
+    c_avg = 2*c_avg / (1 + c_avg)
+
+    freq = get_radial_spatial_frequencies(s1, 1)
+
+    return freq, c_avg
+
+def __get_SFRC_curve(image):
+    s1 = image[::2, ::2]
+    s2 = image[1::2, ::2]
+    s3 = image[::2, 1::2]
+    s4 = image[1::2, 1::2]
+
+    S2 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s2)), 0, 0.5)
+    s2_shift = np.fft.ifftn(np.fft.ifftshift(S2)).real
+
+    S3 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s3)), 0.5, 0.0)
+    s3_shift = np.fft.ifftn(np.fft.ifftshift(S3)).real
+
+    S4 = phase_shift_2d(np.fft.fftshift(np.fft.fftn(s4)), 0.5, 0.5)
+    s4_shift = np.fft.ifftn(np.fft.ifftshift(S4)).real
+
+    r = image.shape[0]//2
+
+    c1 = two_image_frc(s1, s2, r)
+    c2 = two_image_frc(s3, s4, r)
+
+    print(s1.shape)
+    print(s2.shape)
+    print(s3.shape)
+    print(s4.shape)
+    print(c1.shape)
+    print(c2.shape)
 
     c_avg = np.mean([c1, c2], axis=0)
 
