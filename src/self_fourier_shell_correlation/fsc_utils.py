@@ -679,8 +679,10 @@ def random_split(signal):
 def odd_even_split(image):
     s1 = image[:, ::2]
     s2 = image[:, 1::2]
+    return s1, s2
 
 def get_SFRC_curve(image):
+    '''even/odd downsampling'''
     s1 = image[:, ::2]
     s2 = image[:, 1::2]
     #s1, s2 = random_split(image)
@@ -706,7 +708,8 @@ def get_SFRC_curve(image):
 
     return freq, c_avg
 
-def get_SFRC_curve(image):
+def __get_SFRC_curve(image):
+    '''random downsampling'''
     s1, s2 = random_split(image)
     s3, s4 = random_split(image)
     s5, s6 = random_split(image)
@@ -719,13 +722,14 @@ def get_SFRC_curve(image):
 
     c_avg = np.mean([c1, c2, c3], axis=0)
 
-    c_avg = 2*c_avg / (1 + c_avg)
+    #c_avg = 2*c_avg / (1 + c_avg)
 
     freq = get_radial_spatial_frequencies(s1, 1)
 
     return freq, c_avg
 
 def __get_SFRC_curve(image):
+    '''checkboard downsampling'''
     s1 = image[::2, ::2]
     s2 = image[1::2, ::2]
     s3 = image[::2, 1::2]
@@ -741,24 +745,26 @@ def __get_SFRC_curve(image):
     s4_shift = np.fft.ifftn(np.fft.ifftshift(S4)).real
 
     r = image.shape[0]//2
+    print("0", r)
 
-    c1 = two_image_frc(s1, s2, r)
-    c2 = two_image_frc(s3, s4, r)
+    c1 = two_image_frc(s1, s2_shift, r)
+    c2 = two_image_frc(s3_shift, s4_shift, r)
 
-    print(s1.shape)
-    print(s2.shape)
-    print(s3.shape)
-    print(s4.shape)
-    print(c1.shape)
-    print(c2.shape)
+    print("1", s1.shape)
+    print("2", s2.shape)
+    print("3", s3.shape)
+    print("4", s4.shape)
+    print("5", c1.shape)
+    print("6", c2.shape)
 
     c_avg = np.mean([c1, c2], axis=0)
 
-    c_avg = 2*c_avg / (1 + c_avg)
+    #c_avg = 2*c_avg / (1 + c_avg)
 
-    freq = get_radial_spatial_frequencies(s1, 1)
+    #freq = get_radial_spatial_frequencies(s1, 2)
 
-    return freq, c_avg
+    #return freq, c_avg
+    return np.arange(len(c_avg)), c_avg
 
 def get_FSC_curve(vol1, vol2):
     r = vol1.shape[0]//2
