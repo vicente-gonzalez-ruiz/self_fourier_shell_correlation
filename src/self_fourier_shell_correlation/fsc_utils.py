@@ -681,7 +681,7 @@ def odd_even_split(image):
     s2 = image[:, 1::2]
     return s1, s2
 
-def get_SFRC_curve(image):
+def get_SFRC_curve__even_odd(image):
     '''even/odd downsampling'''
     s1 = image[:, ::2]
     s2 = image[:, 1::2]
@@ -705,6 +705,25 @@ def get_SFRC_curve(image):
     c_avg = 2*c_avg / (1 + c_avg)
 
     freq = get_radial_spatial_frequencies(s1, 1)
+
+    return freq, c_avg
+
+from shuffling import image as image_shuffling
+
+def get_SFRC_curve__random_shuffling(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+    '''Random shuffling'''
+    r = image.shape[0]//2
+
+    acc = np.zeros(r)
+    for i in range(N):
+        c1 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
+        c2 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
+        curve = two_image_frc(c1, c2, r)
+        acc += curve
+
+    c_avg = acc/(i+1)
+    #c_avg = 2*c_avg / (1 + c_avg)
+    freq = get_radial_spatial_frequencies(image, 1)
 
     return freq, c_avg
 
