@@ -710,8 +710,56 @@ def get_SFRC_curve__even_odd(image):
 
 from shuffling import image as image_shuffling
 
-def get_SFRC_curve__random_shuffling(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
-    '''Random shuffling'''
+def __get_SFRC_curve__chessboard(image):
+    '''even/odd downsampling'''
+    blacks = image_shuffling.chessboard_interpolate_blacks(image)
+    whites = image_shuffling.chessboard_interpolate_whites(image)
+
+    r = image.shape[0]//2
+
+    c1 = two_image_frc(image, blacks, r)
+    c2 = two_image_frc(image, whites, r)
+
+    c_avg = np.mean([c1, c2], axis=0)
+
+    #c_avg = 2*c_avg / (1 + c_avg)
+
+    freq = get_radial_spatial_frequencies(image, 1)
+
+    return freq, c_avg
+
+def get_SFRC_curve__chessboard(image):
+    '''even/odd downsampling'''
+    blacks = image_shuffling.chessboard_blacks(image)
+    whites = image_shuffling.chessboard_whites(image)
+
+    r = image.shape[0]//2
+
+    c_avg = two_image_frc(whites, blacks, r)
+
+    #c_avg = 2*c_avg / (1 + c_avg)
+
+    freq = get_radial_spatial_frequencies(image, 1)
+
+    return freq, c_avg
+
+def get_SFRC_curve__interpolated_chessboard(image):
+    '''even/odd downsampling'''
+    blacks = image_shuffling.chessboard_interpolate_blacks(image)
+    whites = image_shuffling.chessboard_interpolate_whites(image)
+
+    r = image.shape[0]//2
+
+    c_avg = two_image_frc(whites, blacks, r)
+
+    #c_avg = 2*c_avg / (1 + c_avg)
+
+    freq = get_radial_spatial_frequencies(image, 1)
+
+    return freq, c_avg
+
+def get_SFRC_curve__SPRS(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+    '''Structure-Preserving Random shuffling'''
     r = image.shape[0]//2
 
     acc = np.zeros(r)
@@ -719,6 +767,23 @@ def get_SFRC_curve__random_shuffling(image, N = 10, std_dev=3.0, sigma_poly=1.2,
         c1 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
         c2 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
         curve = two_image_frc(c1, c2, r)
+        acc += curve
+
+    c_avg = acc/(i+1)
+    #c_avg = 2*c_avg / (1 + c_avg)
+    freq = get_radial_spatial_frequencies(image, 1)
+
+    return freq, c_avg
+
+def get_SFRC_curve__SPRS(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+    '''Structure-Preserving Random shuffling'''
+    r = image.shape[0]//2
+
+    acc = np.zeros(r)
+    for i in range(N):
+        #c1 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
+        c2 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
+        curve = two_image_frc(image, c2, r)
         acc += curve
 
     c_avg = acc/(i+1)
