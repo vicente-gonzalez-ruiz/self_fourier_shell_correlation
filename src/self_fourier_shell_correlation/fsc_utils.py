@@ -758,7 +758,24 @@ def get_SFRC_curve__interpolated_chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__SPRS(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+def get_SFRC_curve__subsampled_chessboard(image):
+    # https://www.nature.com/articles/s41467-019-11024-z
+    # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
+
+    A, B, C, D = image_shuffling.subsampled_chessboard(image)
+
+    r = image.shape[0]//4
+
+    c1 = two_image_frc(A, B, r)
+    c2 = two_image_frc(C, D, r)
+    c_avg = np.mean([c1, c2], axis=0)
+
+    #freq = get_radial_spatial_frequencies(image, 1)
+    freq = np.arange(0, len(c_avg))/(len(c_avg)*2)
+
+    return freq, c_avg
+
+def get_SFRC_curve__SPRS1(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
     '''Structure-Preserving Random shuffling'''
     r = image.shape[0]//2
 
@@ -775,7 +792,7 @@ def get_SFRC_curve__SPRS(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side
 
     return freq, c_avg
 
-def get_SFRC_curve__SPRS(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+def get_SFRC_curve__SPRS2(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
     '''Structure-Preserving Random shuffling'''
     r = image.shape[0]//2
 
