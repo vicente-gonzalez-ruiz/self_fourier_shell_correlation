@@ -775,7 +775,7 @@ def get_SFRC_curve__subsampled_chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__SPRS1(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+def get_SFRC_curve__SPRS1(image, N = 10, std_dev=2.0, sigma_poly=1.2, window_side=5):
     '''Structure-Preserving Random shuffling'''
     r = image.shape[0]//2
 
@@ -792,7 +792,7 @@ def get_SFRC_curve__SPRS1(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_sid
 
     return freq, c_avg
 
-def get_SFRC_curve__SPRS2(image, N = 10, std_dev=3.0, sigma_poly=1.2, window_side=5):
+def get_SFRC_curve__SPRS2(image, N = 10, std_dev=2.5, sigma_poly=1.2, window_side=5):
     '''Structure-Preserving Random shuffling'''
     r = image.shape[0]//2
 
@@ -871,4 +871,10 @@ def get_FSC_curve(vol1, vol2):
     r = vol1.shape[0]//2
     corrs = two_volume_fsc(vol1, vol2, r)
     freqs = get_radial_spatial_frequencies(vol1, 1)
+    return freqs, corrs
+
+def get_FRC_curve(img1, img2):
+    r = img1.shape[0]//2
+    corrs = two_image_fsc(img1, img2, r)
+    freqs = get_radial_spatial_frequencies(img1, 1)
     return freqs, corrs
