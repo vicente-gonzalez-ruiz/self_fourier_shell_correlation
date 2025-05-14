@@ -364,10 +364,10 @@ def get_radial_spatial_frequencies(array, voxel_size, mode='full'):
         voxel_size = 2*voxel_size
         
     r = np.amax(array.shape)  
+    #r = np.amin(array.shape)  
     r_freq = np.fft.fftfreq(r, voxel_size)[:r//2]
     
     return r_freq
-
 
 def compute_spherically_averaged_power_spectrum(array, rmax):
     
@@ -681,6 +681,37 @@ def odd_even_split(image):
     s2 = image[:, 1::2]
     return s1, s2
 
+from shuffling import image as image_shuffling
+
+def odd_even_split_fill_zeros(image):
+    """
+    Splits an image into odd and even indexed columns and fills the
+    missing rows and columns in each split image with zeros to match
+    the original image shape.
+
+    Args:
+        image (np.ndarray): The input 2D numpy array (image).
+
+    Returns:
+        tuple: A tuple containing two numpy arrays (s1_filled, s2_filled),
+               both with the same shape as the input image, where the
+               missing columns have been filled with zeros.
+    """
+    rows, cols = image.shape
+    s1, s2 = odd_even_split(image)
+    #s1 = image[:, ::2]
+    #s2 = image[:, 1::2]
+
+    # Fill missing columns in s1 with zeros
+    s1_filled = np.zeros_like(image, dtype=image.dtype)
+    s1_filled[:, ::2] = s1
+
+    # Fill missing columns in s2 with zeros
+    s2_filled = np.zeros_like(image, dtype=image.dtype)
+    s2_filled[:, 1::2] = s2
+
+    return s1_filled, s2_filled
+
 def get_SFRC_curve__even_odd(image):
     '''even/odd downsampling'''
     s1 = image[:, ::2]
@@ -702,13 +733,11 @@ def get_SFRC_curve__even_odd(image):
 
     c_avg = np.mean([c1, c2], axis=0)
 
-    c_avg = 2*c_avg / (1 + c_avg)
+    Sc_avg = 2*c_avg / (1 + c_avg)
 
     freq = get_radial_spatial_frequencies(s1, 1)
 
     return freq, c_avg
-
-from shuffling import image as image_shuffling
 
 def __get_SFRC_curve__chessboard(image):
     '''even/odd downsampling'''
@@ -722,9 +751,9 @@ def __get_SFRC_curve__chessboard(image):
 
     c_avg = np.mean([c1, c2], axis=0)
 
-    #c_avg = 2*c_avg / (1 + c_avg)
+    c_avg = 2*c_avg / (1 + c_avg)
 
-    freq = get_radial_spatial_frequencies(image, 1)
+    freq = get_radial_spatial_frequencies(image, 2)
 
     return freq, c_avg
 
@@ -737,7 +766,7 @@ def get_SFRC_curve__chessboard(image):
 
     c_avg = two_image_frc(whites, blacks, r)
 
-    #c_avg = 2*c_avg / (1 + c_avg)
+    #c_avg = 8*c_avg / (1 + 7*c_avg)
 
     freq = get_radial_spatial_frequencies(image, 1)
 
@@ -752,7 +781,7 @@ def get_SFRC_curve__interpolated_chessboard(image):
 
     c_avg = two_image_frc(whites, blacks, r)
 
-    #c_avg = 2*c_avg / (1 + c_avg)
+    #c_avg = 8*c_avg / (1 + 7*c_avg)
 
     freq = get_radial_spatial_frequencies(image, 1)
 
@@ -770,8 +799,11 @@ def get_SFRC_curve__subsampled_chessboard(image):
     c2 = two_image_frc(C, D, r)
     c_avg = np.mean([c1, c2], axis=0)
 
-    #freq = get_radial_spatial_frequencies(image, 1)
-    freq = np.arange(0, len(c_avg))/(len(c_avg)*2)
+    # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)q
+    c_avg = 4*c_avg / (1 + 3*c_avg)
+
+    #freq = get_radial_spatial_frequencies(image, 2)
+    freq = np.arange(0, len(c_avg))/(len(c_avg)*4)
 
     return freq, c_avg
 
@@ -792,14 +824,15 @@ def get_SFRC_curve__SPRS1(image, N = 10, std_dev=2.0, sigma_poly=1.2, window_sid
 
     return freq, c_avg
 
-def get_SFRC_curve__SPRS2(image, N = 10, std_dev=2.5, sigma_poly=1.2, window_side=5):
-    '''Structure-Preserving Random shuffling'''
+def get_SFRC_curve__SPRS(image, N = 10, std_dev=2.5, sigma_poly=1.2, window_side=5, fadding_width=0):
+    '''Structure-Preserving Random shuffling (using always the original image)'''
+
     r = image.shape[0]//2
 
     acc = np.zeros(r)
     for i in range(N):
         #c1 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
-        c2 = image_shuffling.randomize_and_project(image, std_dev, window_side, sigma_poly)
+        c2 = image_shuffling.randomize_and_project(image_shuffling.fade_image_margins(image, fadding_width), std_dev, window_side, sigma_poly)
         curve = two_image_frc(image, c2, r)
         acc += curve
 
