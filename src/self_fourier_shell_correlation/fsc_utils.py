@@ -1,11 +1,13 @@
 """
-Author: Eric Verbeke
+Original author: Eric Verbeke.
+Maintainer: Vicente González-Ruiz
 """
 
 import time
 import numpy as np
 import scipy.ndimage as ndi
 from scipy.special import jv
+import matplotlib.pyplot as plt
 
 def log_abs(array):
     return np.log(1 + np.abs(array))
@@ -257,7 +259,6 @@ def single_image_frc(image, rmax, n_splits=1, whiten_upsample=False):
                 
     return corrs
 
-
 def single_volume_fsc(volume, rmax, n_splits=1, whiten_upsample=False):
     """
     Computes the SFSC for a 3D array, specify it the array is whitened and upsampled.
@@ -329,7 +330,6 @@ def single_volume_fsc(volume, rmax, n_splits=1, whiten_upsample=False):
     
     return corrs
 
-
 def two_image_frc(image_1, image_2, rmax):
     """Computes the two-imag FRC, nput is a pair of real space volumes"""
     
@@ -342,7 +342,6 @@ def two_image_frc(image_1, image_2, rmax):
     
     return two_image_frc   
 
-
 def two_volume_fsc(volume_1, volume_2, rmax):
     """Computes the two-volume FSC, nput is a pair of real space volumes"""
     
@@ -354,7 +353,6 @@ def two_volume_fsc(volume_1, volume_2, rmax):
     two_volume_fsc = compute_fourier_shell_correlation(volume_1_ft, volume_2_ft, rmax)
     
     return two_volume_fsc
-
 
 def get_radial_spatial_frequencies(array, voxel_size, mode='full'):
 
@@ -381,7 +379,6 @@ def compute_spherically_averaged_power_spectrum(array, rmax):
     
     return spherically_averaged_power_spectrum
 
-
 def low_pass_filter(array, voxel_size, resolution):
     """Low pass filter array to specified resolution"""
 
@@ -402,7 +399,6 @@ def low_pass_filter(array, voxel_size, resolution):
     
     return f_lpf
 
-
 def b_factor_function(shape, voxel_size, B):
     """B factor equation as function of spatial frequency"""
     
@@ -420,7 +416,6 @@ def b_factor_function(shape, voxel_size, B):
     
     return G
 
-
 def zero_order_bessel(frequency, shift, pixel_size, mode='full'):
     """scale zero order Bessel function of the first kind to match FRC, shift is 2D vector"""
     
@@ -433,7 +428,6 @@ def zero_order_bessel(frequency, shift, pixel_size, mode='full'):
     
     return B
 
-
 def get_sigma_for_snr(x, snr):
     """return standard deviation of WGN for desired snr given real array x"""
     
@@ -442,7 +436,6 @@ def get_sigma_for_snr(x, snr):
     noise = np.sqrt(signal / (snr * N))
     
     return noise
-
 
 def apply_b_factor(v, voxel, B_signal):
     """return array after applying B-factor decay, input is real array"""
@@ -453,7 +446,6 @@ def apply_b_factor(v, voxel, B_signal):
     vb = iftn(Vb)
     
     return vb
-
 
 def generate_noise(noise_std, shape, voxel, B_noise=False):
     """Generate white or color Gaussian noise with B-factor decay"""
@@ -466,7 +458,6 @@ def generate_noise(noise_std, shape, voxel, B_noise=False):
         eps = iftn(eta)
         
     return eps
-
 
 def generate_noisy_data(v, voxel, snr, B_signal=False, B_noise=False, return_noise=False):
     """Function to generate noisy data with B-factor decay and color Gaussian noise"""
@@ -484,8 +475,7 @@ def generate_noisy_data(v, voxel, snr, B_signal=False, B_noise=False, return_noi
         return y, eps
     else:
         return y
-    
-    
+
 def whitening_transform(y, noise, rmax, ratio=1):
     """
     Whiten transform array (y) with known noise variance (noise).
@@ -506,7 +496,6 @@ def whitening_transform(y, noise, rmax, ratio=1):
     
     return y_whitened
 
-
 def fourier_upsample(array, factor=1, rescale=False):
     """Upsample array by zero-padding its Fourier transform (factor 2 would give 100pix -> 200pix)"""
     
@@ -524,7 +513,6 @@ def fourier_upsample(array, factor=1, rescale=False):
     f_upsample = iftn(F_upsample)
     
     return f_upsample
-
 
 def fourier_downsample(array, factor=1, rescale=False):
     """Downsample array by cropping its Fourier transform (factor 2 would give 100pix -> 50pix)"""
@@ -546,7 +534,6 @@ def fourier_downsample(array, factor=1, rescale=False):
     
     return f_downsample
 
-
 def linear_interp_resolution(fsc, frequencies, v=1/7):
     """Estimate FSC at first crossing of value (v) by linear interpolation"""
    
@@ -566,7 +553,6 @@ def linear_interp_resolution(fsc, frequencies, v=1/7):
     
     return resolution
 
-
 def get_slices(d):
     """returns slice index for splitting 2-D or 3-D array into even and odd terms along each dimension"""
     
@@ -584,7 +570,6 @@ def get_slices(d):
         ]  
     
     return slices
-
 
 def get_shifts(d):
     """
@@ -900,14 +885,86 @@ def __get_SFRC_curve(image):
     #return freq, c_avg
     return np.arange(len(c_avg)), c_avg
 
-def get_FSC_curve(vol1, vol2):
+def get_FSC_curve__cubic_vols(vol1, vol2):
     r = vol1.shape[0]//2
     corrs = two_volume_fsc(vol1, vol2, r)
     freqs = get_radial_spatial_frequencies(vol1, 1)
     return freqs, corrs
 
-def get_FRC_curve(img1, img2):
+def get_FRC_curve__square_imgs(img1, img2):
     r = img1.shape[0]//2
     corrs = two_image_fsc(img1, img2, r)
     freqs = get_radial_spatial_frequencies(img1, 1)
     return freqs, corrs
+
+def compute_spatial_frequencies(shape):
+    """
+    Compute the spatial frequency grid for a volume of arbitrary shape.
+    
+    Args:
+        shape: Tuple representing the shape of the volume (nx, ny, nz).
+        
+    Returns:
+        freq_radii: A 3D array where each element represents the spatial frequency radius at that point.
+    """
+    freq_x = np.fft.fftfreq(shape[0])
+    freq_y = np.fft.fftfreq(shape[1])
+    freq_z = np.fft.fftfreq(shape[2])
+
+    freq_x, freq_y, freq_z = np.meshgrid(freq_x, freq_y, freq_z, indexing='ij')
+
+    freq_radii = np.sqrt(freq_x**2 + freq_y**2 + freq_z**2)
+
+    return freq_radii
+
+def fourier_shell_correlation(volume1, volume2, shell_thickness=1):
+    """
+    Compute the Fourier Shell Correlation (FSC) between two volumes of arbitrary shape.
+    Args:
+        volume1, volume2: Two 3D volumes to compare
+        shell_thickness: Thickness of Fourier shells in frequency units
+    Returns:
+        spatial_freq: Array of spatial frequencies (1/voxel units)
+        fsc_values: Array of FSC values at each spatial frequency
+    """
+    # Fourier transforms of both volumes (in double precision and normalized)
+    fft1 = np.fft.fftn(volume1).astype(np.complex128) / np.sqrt(np.prod(volume1.shape))
+    fft2 = np.fft.fftn(volume2).astype(np.complex128) / np.sqrt(np.prod(volume2.shape))
+
+    # Compute spatial frequency grid based on the volume shape
+    freq_radii = compute_spatial_frequencies(volume1.shape)
+
+    max_radius = np.max(freq_radii)
+    shell_indices = np.arange(0, max_radius, shell_thickness)
+
+    fsc_values = []
+    spatial_freq = []
+
+    for r in shell_indices:
+        shell_mask = (freq_radii >= r) & (freq_radii < r + shell_thickness)
+        
+        # Numerator and denominator of the FSC
+        num = np.sum(fft1[shell_mask] * np.conj(fft2[shell_mask]))
+        denom = np.sqrt(np.sum(np.abs(fft1[shell_mask])**2) * np.sum(np.abs(fft2[shell_mask])**2))
+        
+        # Handle potential division by zero
+        fsc_value = np.abs(num) / denom if denom != 0 else 0
+        fsc_values.append(fsc_value)
+        spatial_freq.append(r)
+
+    return np.array(spatial_freq), np.array(fsc_values)
+
+def plot_fsc(spatial_freq, fsc_values, X_label, Y_label, title, show_thresholds=True):
+    """
+    Plot the Fourier Shell Correlation (FSC) curve.
+    """
+    plt.plot(spatial_freq, fsc_values, label='FSC')
+    if show_thresholds:
+        plt.axhline(y=0.143, color='r', linestyle='--', label='0.143 threshold')
+        plt.axhline(y=0.5, color='g', linestyle='--', label='0.5 threshold')
+    plt.xlabel(X_label)
+    plt.ylabel(Y_label)
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
