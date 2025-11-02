@@ -893,7 +893,7 @@ def get_FSC_curve__cubic_vols(vol1, vol2):
 
 def get_FRC_curve__square_imgs(img1, img2):
     r = img1.shape[0]//2
-    corrs = two_image_fsc(img1, img2, r)
+    corrs = two_image_frc(img1, img2, r)
     freqs = get_radial_spatial_frequencies(img1, 1)
     return freqs, corrs
 
