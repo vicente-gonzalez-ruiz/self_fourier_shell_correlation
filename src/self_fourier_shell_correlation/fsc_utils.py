@@ -743,7 +743,6 @@ def __get_SFRC_curve__chessboard(image):
     return freq, c_avg
 
 def get_SFRC_curve__chessboard(image):
-    '''even/odd downsampling'''
     blacks = image_shuffling.chessboard_blacks(image)
     whites = image_shuffling.chessboard_whites(image)
 
@@ -758,7 +757,6 @@ def get_SFRC_curve__chessboard(image):
     return freq, c_avg
 
 def get_SFRC_curve__interpolated_chessboard(image):
-    '''even/odd downsampling'''
     blacks = image_shuffling.chessboard_interpolate_blacks(image)
     whites = image_shuffling.chessboard_interpolate_whites(image)
 
