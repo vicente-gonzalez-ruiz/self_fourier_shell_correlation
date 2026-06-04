@@ -1031,7 +1031,7 @@ def plot_fsc(spatial_freq, fsc_values, X_label, Y_label, title, show_thresholds=
     plt.legend()
     plt.show()
 
-    def compute_radial_power_spectrum(image, ring_width=1.0):
+def compute_radial_power_spectrum(image, ring_width=1.0):
     """
     Computes the average power spectrum of a 2D image by concentric rings
     along with their corresponding normalized spatial frequencies.
