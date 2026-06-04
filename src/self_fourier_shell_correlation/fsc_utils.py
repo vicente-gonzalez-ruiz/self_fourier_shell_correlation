@@ -1031,3 +1031,59 @@ def plot_fsc(spatial_freq, fsc_values, X_label, Y_label, title, show_thresholds=
     plt.legend()
     plt.show()
 
+    def compute_radial_power_spectrum(image, ring_width=1.0):
+    """
+    Computes the average power spectrum of a 2D image by concentric rings
+    along with their corresponding normalized spatial frequencies.
+    Works for any image shape.
+    
+    Parameters:
+    -----------
+    image : np.ndarray
+        2D numpy array representing the input image.
+    ring_width : float
+        The width (thickness) of each concentric ring in pixels.
+        
+    Returns:
+    --------
+    frequencies : np.ndarray
+        1D array of the average normalized spatial frequencies (cycles/pixel) for each ring.
+    power_spectrum : np.ndarray
+        1D array of the average power spectrum intensity for each ring.
+    """
+    # 1. Compute 2D FFT and shift the Power Spectrum to the center
+    fft_complex = np.fft.fft2(image)
+    fft_shifted = np.fft.fftshift(fft_complex)
+    power_spectrum = np.abs(fft_shifted) ** 2
+    
+    # 2. Generate 2D spatial frequencies and shift them to match the power spectrum layout
+    freq_radii_unshifted = compute_spatial_frequencies_2d(image.shape)
+    freq_radii = np.fft.fftshift(freq_radii_unshifted)
+    
+    # 3. Create a pixel coordinate grid measuring distance from the center
+    ny, nx = image.shape
+    center_y, center_x = ny // 2, nx // 2
+    y_indices, x_indices = np.indices(image.shape)
+    r_grid = np.sqrt((y_indices - center_y)**2 + (x_indices - center_x)**2)
+    
+    # 4. Define the radial bin edges based on the requested pixel ring width
+    r_max = r_grid.max()
+    bin_edges = np.arange(0, r_max + ring_width, ring_width)
+    
+    # 5. Extract the average frequency and power inside each ring zone
+    radial_frequencies = []
+    radial_profile = []
+    
+    for i in range(len(bin_edges) - 1):
+        r_min = bin_edges[i]
+        r_max_ring = bin_edges[i+1]
+        
+        # Create a boolean mask for pixels falling inside the current ring
+        ring_mask = (r_grid >= r_min) & (r_grid < r_max_ring)
+        
+        # Only process bins that contain pixels
+        if np.any(ring_mask):
+            radial_profile.append(np.mean(power_spectrum[ring_mask]))
+            radial_frequencies.append(np.mean(freq_radii[ring_mask]))
+            
+    return np.array(radial_frequencies), np.array(radial_profile)
