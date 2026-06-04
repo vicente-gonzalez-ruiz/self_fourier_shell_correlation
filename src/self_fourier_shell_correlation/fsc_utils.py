@@ -46,6 +46,7 @@ def radial_distance_grid(shape):
         radial_dists = radial_dists + square_coords[dimension]
         
     return np.round(np.sqrt(radial_dists))
+    #return np.floor(radial_dists)
 
 def shell_mask(r_dists, r_o, dr=1):
     """Returns shell mask as boolean"""
@@ -331,7 +332,7 @@ def single_volume_fsc(volume, rmax, n_splits=1, whiten_upsample=False):
     return corrs
 
 def two_image_frc(image_1, image_2, rmax):
-    """Computes the two-imag FRC, nput is a pair of real space volumes"""
+    """Computes the two-imag FRC, input is a pair of real space volumes"""
     
     assert image_1.shape == image_2.shape, "input shape mismatch"
     
@@ -782,7 +783,7 @@ def get_SFRC_curve__subsampled_chessboard(image):
     c2 = two_image_frc(C, D, r)
     c_avg = np.mean([c1, c2], axis=0)
 
-    # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)q
+    # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
     c_avg = 4*c_avg / (1 + 3*c_avg)
 
     #freq = get_radial_spatial_frequencies(image, 2)
@@ -915,6 +916,22 @@ def compute_spatial_frequencies(shape):
 
     return freq_radii
 
+def compute_spatial_frequencies_2d(shape):
+    """
+    Helper function to generate a 2D meshgrid of spatial frequencies
+    centered at the zero-frequency component.
+    """
+    # Create frequency coordinates for each axis
+    f_y = np.fft.fftfreq(shape[0])
+    f_x = np.fft.fftfreq(shape[1])
+    
+    # Generate the 2D grid
+    fy_grid, fx_grid = np.meshgrid(f_y, f_x, indexing='ij')
+    
+    # Calculate the radial distance from the origin for each pixel
+    freq_radii = np.sqrt(fy_grid**2 + fx_grid**2)
+    return freq_radii
+
 def fourier_shell_correlation(volume1, volume2, shell_thickness=1):
     """
     Compute the Fourier Shell Correlation (FSC) between two volumes of arbitrary shape.
@@ -951,6 +968,54 @@ def fourier_shell_correlation(volume1, volume2, shell_thickness=1):
         spatial_freq.append(r)
 
     return np.array(spatial_freq), np.array(fsc_values)
+
+def fourier_ring_correlation(image1, image2, ring_thickness=0.01):
+    """
+    Compute the Fourier Ring Correlation (FRC) between two 2D images.
+    
+    Args:
+        image1, image2: Two 2D arrays (images) to compare. Must have the same shape.
+        ring_thickness: Thickness of Fourier rings in spatial frequency units.
+                        Defaults to 0.01 (expressed in 1/pixel units).
+                        
+    Returns:
+        spatial_freq: Array of spatial frequencies (1/pixel units)
+        frc_values: Array of FRC values at each spatial frequency
+    """
+    assert image1.shape == image2.shape, "Images must have identical shapes."
+    
+    # 1. Fourier transforms of both images (using 2D FFT, double precision, and normalized)
+    fft1 = np.fft.fft2(image1).astype(np.complex128) / np.sqrt(np.prod(image1.shape))
+    fft2 = np.fft.fft2(image2).astype(np.complex128) / np.sqrt(np.prod(image2.shape))
+
+    # 2. Compute spatial frequency radial distance grid
+    freq_radii = compute_spatial_frequencies_2d(image1.shape)
+
+    # 3. Define the rings up to the maximum Nyquist frequency available in the corners
+    max_radius = np.max(freq_radii)
+    ring_indices = np.arange(0, max_radius, ring_thickness)
+
+    frc_values = []
+    spatial_freq = []
+
+    # 4. Integrate over concentric rings
+    for r in ring_indices:
+        ring_mask = (freq_radii >= r) & (freq_radii < r + ring_thickness)
+        
+        # Ensure the ring actually contains pixels
+        if not np.any(ring_mask):
+            continue
+            
+        # Numerator and denominator of the FRC equation
+        num = np.sum(fft1[ring_mask] * np.conj(fft2[ring_mask]))
+        denom = np.sqrt(np.sum(np.abs(fft1[ring_mask])**2) * np.sum(np.abs(fft2[ring_mask])**2))
+        
+        # Handle potential division by zero or empty regions
+        frc_value = np.abs(num) / denom if denom != 0 else 0
+        frc_values.append(frc_value)
+        spatial_freq.append(r + ring_thickness / 2.0) # Using center frequency of the ring
+
+    return np.array(spatial_freq), np.array(frc_values)
 
 def plot_fsc(spatial_freq, fsc_values, X_label, Y_label, title, show_thresholds=True):
     """
