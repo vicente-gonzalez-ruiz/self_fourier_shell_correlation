@@ -814,7 +814,28 @@ def get_SFRC_curve__subsampled_chessboard(image):
 
     return freq, c_avg
 
-def __get_SFRC_curve__interpolated_chessboard(image):
+def __get_SFRC_curve__subsampled_chessboard(image):
+    # https://www.nature.com/articles/s41467-019-11024-z
+    # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
+
+    #A, B, C, D = image_shuffling.subsampled_chessboard(image)
+    EE, EO, OE, OO = image_shuffling.subsampled_chessboard(image)
+
+    r = image.shape[0]//4
+
+    c1 = two_image_frc(EE, EO, r)
+    c2 = two_image_frc(OE, OO, r)
+    c_avg = np.mean([c1, c2], axis=0)
+
+    # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
+    c_avg = 4*c_avg / (1 + 3*c_avg)
+
+    #freq = get_radial_spatial_frequencies(image, 2)
+    freq = np.arange(0, len(c_avg))/(len(c_avg)*4)
+
+    return freq, c_avg
+
+def get_SFRC_curve__interpolated_chessboard(image):
     blacks = image_shuffling.chessboard_interpolate_blacks(image)
     whites = image_shuffling.chessboard_interpolate_whites(image)
 
@@ -825,27 +846,6 @@ def __get_SFRC_curve__interpolated_chessboard(image):
     #c_avg = 8*c_avg / (1 + 7*c_avg)
 
     freq = get_radial_spatial_frequencies(image, 1)
-
-    return freq, c_avg
-
-def get_SFRC_curve__subsampled_chessboard(image):
-    # https://www.nature.com/articles/s41467-019-11024-z
-    # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
-
-    #A, B, C, D = image_shuffling.subsampled_chessboard(image)
-    EE, EO, OE, OO = image_shuffling.subsampled_chessboard(image)
-
-    r = image.shape[0]//4
-
-    c1 = two_image_frc(A, B, r)
-    c2 = two_image_frc(C, D, r)
-    c_avg = np.mean([c1, c2], axis=0)
-
-    # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
-    c_avg = 4*c_avg / (1 + 3*c_avg)
-
-    #freq = get_radial_spatial_frequencies(image, 2)
-    freq = np.arange(0, len(c_avg))/(len(c_avg)*4)
 
     return freq, c_avg
 
