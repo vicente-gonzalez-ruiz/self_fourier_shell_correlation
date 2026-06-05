@@ -825,8 +825,8 @@ def get_SFRC_curve__subsampled_chessboard(image):
 
     r = image.shape[0]//4
 
-    c1 = two_image_frc(EE, phase_shift_2d(EO, 0, 0.5), r)
-    c2 = two_image_frc(phase_shift_2d(OE, 0.5, 0), phase_shift_2d(OO, 0.5, 0.5), r)
+    c1 = two_image_frc(EE, phase_shift_2d(EO, 0,5, 0), r)
+    c2 = two_image_frc(phase_shift_2d(OE, 0, 0.5), phase_shift_2d(OO, 0.5, 0.5), r)
     c_avg = np.mean([c1, c2], axis=0)
 
     # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
