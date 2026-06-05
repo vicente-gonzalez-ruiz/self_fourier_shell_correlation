@@ -773,16 +773,16 @@ def get_SFRC_curve__chessboard(image):
 
     return freq, c_avg
 
-def __get_SFRC_curve__subsampled_chessboard(image):
+def get_SFRC_curve__subsampled_chessboard(image):
     even_even, even_odd, odd_even, odd_odd = image_shuffling.subsampled_chessboard(image)
 
     r = image.shape[0] // 4
 
     # Convert to Fourier space
-    ee_ft = ft2(even_even)
-    eo_ft = ft2(even_odd)
-    oe_ft = ft2(odd_even)
-    oo_ft = ft2(odd_odd)
+    EE = ft2(even_even)
+    EO = ft2(even_odd)
+    OE= ft2(odd_even)
+    OO = ft2(odd_odd)
 
     # Apply phase corrections to align everything to the (even_even) origin
     # Reminder: phase_shift_2d takes (F, sx, sy)
@@ -790,18 +790,18 @@ def __get_SFRC_curve__subsampled_chessboard(image):
     # 1. even_even: This is our origin. No shift needed.
     
     # 2. even_odd: Shifted +0.5x (cols), 0.0y (rows) in real space -> Needs sx=-0.5, sy=0.0
-    eo_ft = phase_shift_2d(eo_ft, sx=-0.5, sy=0.0)
+    SEO = phase_shift_2d(EO, sx=-0.5, sy=0.0)
     
     # 3. odd_even: Shifted 0.0x (cols), +0.5y (rows) in real space -> Needs sx=0.0, sy=-0.5
-    oe_ft = phase_shift_2d(oe_ft, sx=0.0, sy=-0.5)
+    SOE = phase_shift_2d(OE, sx=0.0, sy=-0.5)
     
     # 4. odd_odd: Shifted +0.5x (cols), +0.5y (rows) in real space -> Needs sx=-0.5, sy=-0.5
-    oo_ft = phase_shift_2d(oo_ft, sx=-0.5, sy=-0.5)
+    SOO = phase_shift_2d(OO, sx=-0.5, sy=-0.5)
 
     # Compute FRC on aligned Fourier pairs. 
     # Maintaining diagonal pairs from your original script for statistical validity.
-    c1 = compute_fourier_shell_correlation(ee_ft, oo_ft, r)
-    c2 = compute_fourier_shell_correlation(oe_ft, eo_ft, r)
+    c1 = compute_fourier_shell_correlation(EE, SOO, r)
+    c2 = compute_fourier_shell_correlation(SOE, SEO, r)
     
     c_avg = np.mean([c1, c2], axis=0)
 
@@ -814,7 +814,7 @@ def __get_SFRC_curve__subsampled_chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__subsampled_chessboard(image):
+def __get_SFRC_curve__subsampled_chessboard(image):
     # https://www.nature.com/articles/s41467-019-11024-z
     # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
 
