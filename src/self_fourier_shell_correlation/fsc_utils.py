@@ -773,7 +773,7 @@ def get_SFRC_curve__chessboard(image):
 
     return freq, c_avg
 
-def __get_SFRC_curve__subsampled_chessboard(image):
+def get_SFRC_curve__subsampled_chessboard(image):
     even_even, even_odd, odd_even, odd_odd = image_shuffling.subsampled_chessboard(image)
 
     r = image.shape[0] // 4
@@ -790,20 +790,18 @@ def __get_SFRC_curve__subsampled_chessboard(image):
     # 1. even_even: This is our origin. No shift needed.
     
     # 2. even_odd: Shifted +0.5x (cols), 0.0y (rows) in real space -> Needs sx=-0.5, sy=0.0
-    SEO = phase_shift_2d(EO, sx=-0.5, sy=0.0)
+    EO = phase_shift_2d(EO, sx=-0.5, sy=0.0)
     
     # 3. odd_even: Shifted 0.0x (cols), +0.5y (rows) in real space -> Needs sx=0.0, sy=-0.5
-    SOE = phase_shift_2d(OE, sx=0.0, sy=-0.5)
+    OE = phase_shift_2d(OE, sx=0.0, sy=-0.5)
     
     # 4. odd_odd: Shifted +0.5x (cols), +0.5y (rows) in real space -> Needs sx=-0.5, sy=-0.5
-    SOO = phase_shift_2d(OO, sx=-0.5, sy=-0.5)
+    OO = phase_shift_2d(OO, sx=-0.5, sy=-0.5)
 
     # Compute FRC on aligned Fourier pairs. 
     # Maintaining diagonal pairs from your original script for statistical validity.
-    #c1 = compute_fourier_shell_correlation(EE, SOO, r)
-    #c2 = compute_fourier_shell_correlation(SOE, SEO, r)
-    c1 = two_image_frc(EE, SEO, r)
-    c2 = two_image_frc(SOE, SOO, r)
+    c1 = compute_fourier_shell_correlation(EE, EO, r)
+    c2 = compute_fourier_shell_correlation(OE, OO, r)
 
     c_avg = np.mean([c1, c2], axis=0)
 
@@ -816,7 +814,7 @@ def __get_SFRC_curve__subsampled_chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__subsampled_chessboard(image):
+def __get_SFRC_curve__subsampled_chessboard(image):
     # https://www.nature.com/articles/s41467-019-11024-z
     # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
 
@@ -825,8 +823,8 @@ def get_SFRC_curve__subsampled_chessboard(image):
 
     r = image.shape[0]//4
 
-    c1 = two_image_frc(EE, phase_shift_2d(EO, 0.5, 0), r)
-    c2 = two_image_frc(phase_shift_2d(OE, 0, 0.5), phase_shift_2d(OO, 0.5, 0.5), r)
+    c1 = two_image_frc(EE, EO, r)
+    c2 = two_image_frc(OE, OO, r)
     c_avg = np.mean([c1, c2], axis=0)
 
     # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
