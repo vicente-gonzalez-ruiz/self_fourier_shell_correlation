@@ -781,7 +781,7 @@ def get_SFRC_curve__subsampled_chessboard(image):
     # Convert to Fourier space
     EE = ft2(even_even)
     EO = ft2(even_odd)
-    OE= ft2(odd_even)
+    OE = ft2(odd_even)
     OO = ft2(odd_odd)
 
     # Apply phase corrections to align everything to the (even_even) origin
@@ -802,8 +802,8 @@ def get_SFRC_curve__subsampled_chessboard(image):
     # Maintaining diagonal pairs from your original script for statistical validity.
     #c1 = compute_fourier_shell_correlation(EE, SOO, r)
     #c2 = compute_fourier_shell_correlation(SOE, SEO, r)
-    c1 = two_image_frc(EE, EO, r)
-    c2 = two_image_frc(OE, OO, r)
+    c1 = two_image_frc(EE, SEO, r)
+    c2 = two_image_frc(SOE, SOO, r)
 
     c_avg = np.mean([c1, c2], axis=0)
 
