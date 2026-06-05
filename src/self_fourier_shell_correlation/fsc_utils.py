@@ -150,6 +150,22 @@ def phase_shift_2d(F, sx, sy):
     
     return F_shift
 
+def phase_shift_2d_general(Y, shift_x, shift_y):
+    """Shifts a centered Fourier transform Y by shift_y, shift_x (in
+    pixels). Works with any resolution (included odd dimensions).
+
+    """
+    ny, nx = Y.shape
+    # Get frequencies and shift them to match the fftshifted Y
+    v = np.fft.fftshift(np.fft.fftfreq(ny))  # y-axis (rows)
+    u = np.fft.fftshift(np.fft.fftfreq(nx))  # x-axis (cols)
+    
+    uu, vv = np.meshgrid(u, v)
+    
+    # Apply the inverse phase shift using the Fourier Shift Theorem
+    phase_shift = np.exp(-1j * 2 * np.pi * (uu * shift_x + vv * shift_y))
+    return Y * phase_shift
+
 def phase_shift_3d(F, sx, sy, sz):
     """Phase shift 3-D array, requires even shape"""
 
@@ -341,10 +357,10 @@ def two_image_frc(image_1, image_2, rmax):
     
     two_image_frc = compute_fourier_shell_correlation(image_1_ft, image_2_ft, rmax)
     
-    return two_image_frc   
+    return two_image_frc
 
 def two_volume_fsc(volume_1, volume_2, rmax):
-    """Computes the two-volume FSC, nput is a pair of real space volumes"""
+    """Computes the two-volume FSC, input is a pair of real space volumes"""
     
     assert volume_1.shape == volume_2.shape, "input shape mismatch"
     
@@ -757,7 +773,48 @@ def get_SFRC_curve__chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__interpolated_chessboard(image):
+def get_SFRC_curve__subsampled_chessboard(image):
+    even_even, even_odd, odd_even, odd_odd = image_shuffling.subsampled_chessboard(image)
+
+    r = image.shape[0] // 4
+
+    # Convert to Fourier space
+    ee_ft = ft2(even_even)
+    eo_ft = ft2(even_odd)
+    oe_ft = ft2(odd_even)
+    oo_ft = ft2(odd_odd)
+
+    # Apply phase corrections to align everything to the (even_even) origin
+    # Reminder: phase_shift_2d takes (F, sx, sy)
+    
+    # 1. even_even: This is our origin. No shift needed.
+    
+    # 2. even_odd: Shifted +0.5x (cols), 0.0y (rows) in real space -> Needs sx=-0.5, sy=0.0
+    eo_ft = phase_shift_2d(eo_ft, sx=-0.5, sy=0.0)
+    
+    # 3. odd_even: Shifted 0.0x (cols), +0.5y (rows) in real space -> Needs sx=0.0, sy=-0.5
+    oe_ft = phase_shift_2d(oe_ft, sx=0.0, sy=-0.5)
+    
+    # 4. odd_odd: Shifted +0.5x (cols), +0.5y (rows) in real space -> Needs sx=-0.5, sy=-0.5
+    oo_ft = phase_shift_2d(oo_ft, sx=-0.5, sy=-0.5)
+
+    # Compute FRC on aligned Fourier pairs. 
+    # Maintaining diagonal pairs from your original script for statistical validity.
+    c1 = compute_fourier_shell_correlation(ee_ft, oo_ft, r)
+    c2 = compute_fourier_shell_correlation(oe_ft, eo_ft, r)
+    
+    c_avg = np.mean([c1, c2], axis=0)
+
+    # Statistical 4-split correlation correction
+    # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
+    c_avg = 4 * c_avg / (1 + 3 * c_avg)
+
+    # Max frequency evaluated is 0.25 cycles/pixel
+    freq = np.arange(0, len(c_avg)) / (len(c_avg) * 4)
+
+    return freq, c_avg
+
+def __get_SFRC_curve__interpolated_chessboard(image):
     blacks = image_shuffling.chessboard_interpolate_blacks(image)
     whites = image_shuffling.chessboard_interpolate_whites(image)
 
@@ -775,7 +832,8 @@ def get_SFRC_curve__subsampled_chessboard(image):
     # https://www.nature.com/articles/s41467-019-11024-z
     # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
 
-    A, B, C, D = image_shuffling.subsampled_chessboard(image)
+    #A, B, C, D = image_shuffling.subsampled_chessboard(image)
+    EE, EO, OE, OO = image_shuffling.subsampled_chessboard(image)
 
     r = image.shape[0]//4
 
