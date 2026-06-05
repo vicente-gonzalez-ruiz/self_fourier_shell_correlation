@@ -773,7 +773,7 @@ def get_SFRC_curve__chessboard(image):
 
     return freq, c_avg
 
-def __get_SFRC_curve__subsampled_chessboard(image):
+def get_SFRC_curve__subsampled_chessboard(image):
     even_even, even_odd, odd_even, odd_odd = image_shuffling.subsampled_chessboard(image)
 
     r = image.shape[0] // 4
@@ -800,7 +800,7 @@ def __get_SFRC_curve__subsampled_chessboard(image):
 
     # Compute FRC on aligned Fourier pairs. 
     # Maintaining diagonal pairs from your original script for statistical validity.
-    c1 = compute_fourier_shell_correlation(EE, 00, r)
+    c1 = compute_fourier_shell_correlation(EE, OO, r)
     c2 = compute_fourier_shell_correlation(EO, OE, r)
 
     c_avg = np.mean([c1, c2], axis=0)
@@ -814,7 +814,7 @@ def __get_SFRC_curve__subsampled_chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__subsampled_chessboard(image):
+def __get_SFRC_curve__subsampled_chessboard(image):
     # https://www.nature.com/articles/s41467-019-11024-z
     # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
 
