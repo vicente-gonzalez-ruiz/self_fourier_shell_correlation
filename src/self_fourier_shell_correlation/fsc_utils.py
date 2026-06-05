@@ -790,13 +790,13 @@ def get_SFRC_curve__subsampled_chessboard(image):
     # 1. even_even: This is our origin. No shift needed.
     
     # 2. even_odd: Shifted +0.5x (cols), 0.0y (rows) in real space -> Needs sx=-0.5, sy=0.0
-    #EO = phase_shift_2d(EO, sx=0.5, sy=0.0)
+    EO = phase_shift_2d_general(EO, -0.5, 0.0)
     
     # 3. odd_even: Shifted 0.0x (cols), +0.5y (rows) in real space -> Needs sx=0.0, sy=-0.5
-    #OE = phase_shift_2d(OE, sx=0.0, sy=0.5)
+    OE = phase_shift_2d_general(OE, 0.0, -0.5)
     
     # 4. odd_odd: Shifted +0.5x (cols), +0.5y (rows) in real space -> Needs sx=-0.5, sy=-0.5
-    #OO = phase_shift_2d(OO, sx=0.5, sy=0.5)
+    OO = phase_shift_2d_general(OO, -0.5, -0.5)
 
     # Compute FRC on aligned Fourier pairs. 
     # Maintaining diagonal pairs from your original script for statistical validity.
