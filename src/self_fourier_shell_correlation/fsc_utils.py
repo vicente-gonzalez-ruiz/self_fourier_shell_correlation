@@ -800,8 +800,8 @@ def __get_SFRC_curve__subsampled_chessboard(image):
 
     # Compute FRC on aligned Fourier pairs. 
     # Maintaining diagonal pairs from your original script for statistical validity.
-    c1 = compute_fourier_shell_correlation(EE, EO, r)
-    c2 = compute_fourier_shell_correlation(OE, OO, r)
+    c1 = compute_fourier_shell_correlation(EE, 00, r)
+    c2 = compute_fourier_shell_correlation(EO, OE, r)
 
     c_avg = np.mean([c1, c2], axis=0)
 
@@ -826,7 +826,7 @@ def get_SFRC_curve__subsampled_chessboard(image):
     #c1 = two_image_frc(EE, EO, r)
     #c2 = two_image_frc(OE, OO, r)
     c1 = two_image_frc(EE, OO, r)
-    c2 = two_image_frc(EE, OR, r)
+    c2 = two_image_frc(EO, OE, r)
     c_avg = np.mean([c1, c2], axis=0)
 
     # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
