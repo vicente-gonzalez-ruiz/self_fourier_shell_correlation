@@ -773,7 +773,7 @@ def get_SFRC_curve__chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__subsampled_chessboard(image):
+def __get_SFRC_curve__subsampled_chessboard(image):
     even_even, even_odd, odd_even, odd_odd = image_shuffling.subsampled_chessboard(image)
 
     r = image.shape[0] // 4
@@ -816,7 +816,7 @@ def get_SFRC_curve__subsampled_chessboard(image):
 
     return freq, c_avg
 
-def __get_SFRC_curve__subsampled_chessboard(image):
+def get_SFRC_curve__subsampled_chessboard(image):
     # https://www.nature.com/articles/s41467-019-11024-z
     # https://github.com/sakoho81/miplib/blob/public/miplib/processing/image.py#L133
 
