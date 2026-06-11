@@ -773,7 +773,7 @@ def get_SFRC_curve__chessboard(image):
 
     return freq, c_avg
 
-def get_SFRC_curve__subsampled_chessboard(image):
+def get_SFRC_curve__subsampled_chessboard(image, correction=False):
     even_even, even_odd, odd_even, odd_odd = image_shuffling.subsampled_chessboard(image)
 
     r = image.shape[0] // 4
@@ -807,7 +807,8 @@ def get_SFRC_curve__subsampled_chessboard(image):
 
     # Statistical 4-split correlation correction
     # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
-    c_avg = 4 * c_avg / (1 + 3 * c_avg)
+    if correction:
+        c_avg = 4 * c_avg / (1 + 3 * c_avg)
 
     # Max frequency evaluated is 0.25 cycles/pixel
     freq = np.arange(0, len(c_avg)) / (len(c_avg) * 4)
