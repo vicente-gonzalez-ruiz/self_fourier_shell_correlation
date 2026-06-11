@@ -809,6 +809,8 @@ def get_SFRC_curve__subsampled_chessboard(image, correction=False):
     # See https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-023-05724-y/MediaObjects/42003_2023_5724_MOESM2_ESM.pdf (Eq. 29)
     if correction:
         c_avg = 4 * c_avg / (1 + 3 * c_avg)
+    else:
+        print("No correction used")
 
     # Max frequency evaluated is 0.25 cycles/pixel
     freq = np.arange(0, len(c_avg)) / (len(c_avg) * 4)
