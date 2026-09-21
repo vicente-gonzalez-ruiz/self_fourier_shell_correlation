@@ -21,6 +21,7 @@ dependencies = [
     "opencv-python",
     "scipy",
     "shuffling @ git+https://github.com/vicente-gonzalez-ruiz/shuffling",
+    "motion_estimation @ git+https://github.com/vicente-gonzalez-ruiz/motion_estimation",
     "self_fourier_shell_correlation @ git+https://github.com/vicente-gonzalez-ruiz/self_fourier_shell_correlation"
 ]
 
