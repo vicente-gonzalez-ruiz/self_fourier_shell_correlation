@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools-scm"]
+requires = ["hatchling", "setuptools", "setuptools-scm"]
+#build-backend = "hatchling.build"
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -17,13 +18,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = [
-    "opencv-python",
-    "scipy",
-    "shuffling @ git+https://github.com/vicente-gonzalez-ruiz/shuffling",
-    "self_fourier_shell_correlation @ git+https://github.com/vicente-gonzalez-ruiz/self_fourier_shell_correlation"
-]
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [project.urls]
 "Homepage" = "https://github.com/vicente-gonzalez-ruiz/self_fourier_shell_correlation"
 "Bug Tracker" = "https://github.com/vicente-gonzalez-ruiz/self_fourier_shell_correlation/issues"
+
